@@ -1,0 +1,7 @@
+{
+  "name": "TSR-AntiLogicVirus",
+  "author": "GaviTSRA",
+  "main": "antivirus.Antivirus",
+  "description": "The anti-virus plugin for mindustry.",
+  "version": 1.0
+}
