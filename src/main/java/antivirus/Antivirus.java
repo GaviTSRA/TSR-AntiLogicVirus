@@ -17,7 +17,7 @@ import static mindustry.Vars.*;
 
 public class Antivirus extends Plugin {
 
-    private static String version = "1.0";  //Plugin version dislayed by /info
+    private static String version = "2.0";  //Plugin version dislayed by /info
     public Tile lastVirus;                  //a variable to store the last virus, so the chat isnt spammed to much
 
     //constructor (used for events)
@@ -25,22 +25,33 @@ public class Antivirus extends Plugin {
 
         //triggers when a player ends a build
         Events.on(BlockBuildEndEvent.class, e -> {
-            Tile tile = e.tile;                                                  //get the tile
-            if(tile.build instanceof LogicBuild) {                               //if it is a logic block
-                String code = ((LogicBuild)tile.build).code;                     //get the code
-                if(code.contains("ucontrol build") && code.contains("@this")) {  //if it controls unit and uses @this
-                    
-                    //check if it uses @*-processors
-                    if(code.contains("@micro-processor") || code.contains("@logic-processor") || code.contains("@hyper-processor")) {
-                        
-                        //if this is true, send a message if it isnt the last virus
-                        if(tile != lastVirus) Call.sendMessage("High probability of logic virus at " + tile.worldx() + ", " + tile.worldy() + ", build by " + tile.build.lastAccessed + "[white] !!! DELETING!!!");
-                        
-                        //delete the virus
-                        tile.setNet(Blocks.air);
+            Tile tile = e.tile;                                                 //get the tile
+            if(tile.build instanceof LogicBuild)                                //if it is a logic block
+            {
+                String code = ((LogicBuild)tile.build).code;                    //get the code
+                if(code.contains("ucontrol build"))                             //if it controls a unitn
+                {
+                    int controlIndex = code.indexOf("ucontrol build");          //get the index of the control statement
+                    String controlStatement = code.substring(controlIndex);     //get the control statement
+                    String[] codeParts = controlStatement.split(" ");           //split it into the args
+                    codeParts[6] = codeParts[6].split("\n")[0];                 //fix the last arg
 
-                        //and set the last virus
-                        lastVirus = tile;  
+                    for(int i = 0; i<=virusBlocks.length - 1; i++)              //loop trough the virus blocks and check if the arg matches
+                    {
+                        if(virusBlocks[i].contains(codeParts[4]))               //if it does
+                        {
+                            for(int ii = 0; ii<=virusConfigs.length - 1; ii++)  //loop through the virus configs and check if it matches
+                            {
+                                if (virusConfigs[ii].contains(codeParts[6]))    //if it does
+                                {
+                                                                                //send a message
+                                    if(tile != lastVirus) Call.sendMessage("High probability of logic virus at " + tile.build.x / Vars.tilesize + ", " + tile.build.y / Vars.tilesize + ", build by " + tile.build.lastAccessed + "[white] !!! DELETING!!!");
+                                    tile.setNet(Blocks.air);                    //delete the virus
+                                    lastVirus = tile;                           //set the last virus
+                                    return;                                     //and return
+                                }    
+                            }
+                        }
                     }
                 }
             }
@@ -48,19 +59,34 @@ public class Antivirus extends Plugin {
 
         //triggers when a block is edited
         Events.on(ConfigEvent.class, e -> {
-            Building build = e.tile;                                              //get the block
-            if(build instanceof LogicBuild) {                                     //if it is a logic block
-                String code = ((LogicBuild)build).code;                           //get the code
-                if(code.contains("ucontrol build") && code.contains("@this")) {   //if it controls units and uses @this
+            Building build = e.tile; //get the build
+            if(build instanceof LogicBuild) //if it is a logic build
+            {
+                String code = ((LogicBuild)build).code;                         //get the code
+                
+                if(code.contains("ucontrol build"))                             //if it controls a unit
+                {
+                    int controlIndex = code.indexOf("ucontrol build");          //get the index of the control statement
+                    String controlStatement = code.substring(controlIndex);     //get the control statement
+                    String[] codeParts = controlStatement.split(" ");           //seperate it into its args
+                    codeParts[6] = codeParts[6].split("\n")[0];                 //fix the last arg
 
-                    //do the virus check
-                    if(code.contains("@this") && (code.contains("@micro-processor") || code.contains("@logic-processor") || code.contains("@hyper-processor"))) {
-                        
-                        //if its true, send a message
-                        Call.sendMessage("High probability of logic virus at " + build.x + ", " + build.y + ", build by " + build.lastAccessed + "[white] !!! DELETING!!!");
-                        
-                        //and delete the virus
-                        build.tile.setNet(Blocks.air); 
+                    for(int i = 0; i<virusBlocks.length - 1; i++)               //loop over all possibilitys for viruses in arg 4
+                    {
+                        if(virusBlocks[i].contains(codeParts[4]))               //if it is a virus args
+                        {
+                            for(int ii = 0; ii<=virusConfigs.length - 1; ii++)  //loop over the virus args for args 6
+                            {
+                                if (virusConfigs[ii].contains(codeParts[6]))    //if it is one
+                                {
+                                    //send a message
+                                    if(build.tile != lastVirus) Call.sendMessage("High probability of logic virus at " + build.x / Vars.tilesize + ", " + build.y / Vars.tilesize + ", build by " + build.lastAccessed + "[white] !!! DELETING!!!");
+                                    build.tile.setNet(Blocks.air);  //delete the virus
+                                    lastVirus = build.tile;         //set the lastvirus
+                                    return;                         //and return
+                                }
+                            }
+                        }
                     }
                 }
             }
