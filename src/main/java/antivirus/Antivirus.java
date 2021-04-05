@@ -17,8 +17,11 @@ import static mindustry.Vars.*;
 
 public class Antivirus extends Plugin {
 
-    private static String version = "2.0";  //Plugin version dislayed by /info
-    public Tile lastVirus;                  //a variable to store the last virus, so the chat isnt spammed to much
+    private static String version = "2.0";                              //Plugin version dislayed by /info
+    public Tile lastVirus;                                              //a variable to store the last virus, so the chat isnt spammed to much
+    public static String[] virusBlocks = {                              //a variable to store virus args
+    "@micro-processor", "@logic-processor", "@hyper-processor", ""}; 
+    public static String[] virusConfigs = {"@this", "processor", ""};   //a variable to store virus args
 
     //constructor (used for events)
     public Antivirus() {
